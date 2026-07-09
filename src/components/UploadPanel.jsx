@@ -1,25 +1,147 @@
-import { useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useState } from "react";
+
+const SIDES = [
+  "Front",
+  "Back",
+  "Left",
+  "Right",
+  "Ceiling",
+  "Floor",
+];
 
 export default function UploadPanel({ onComplete }) {
-  const onDrop = useCallback((acceptedFiles) => {
-    const imageUrls = acceptedFiles.map((file) => URL.createObjectURL(file))
-    onComplete(imageUrls)
-  }, [onComplete])
+  const [images, setImages] = useState({});
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'image/*': [] },
-    multiple: true,
-  })
+  function handleFile(side, file) {
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+
+    setImages((prev) => ({
+      ...prev,
+      [side]: {
+        file,
+        url,
+      },
+    }));
+  }
+
+  function removeImage(side) {
+    setImages((prev) => {
+      const copy = { ...prev };
+      delete copy[side];
+      return copy;
+    });
+  }
+
+  const ready = SIDES.every((side) => images[side]);
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', color: 'white' }}>
-      <div {...getRootProps()} style={{ border: '2px dashed #666', borderRadius: 16, padding: '40px 60px', textAlign: 'center', cursor: 'pointer', width: 'min(90vw, 560px)' }}>
-        <input {...getInputProps()} />
-        <h2 style={{ marginBottom: 12 }}>Upload your 360 images</h2>
-        <p>{isDragActive ? 'Drop the images here...' : 'Drag and drop images here, or click to select files.'}</p>
+    <div
+      style={{
+        width: "100%",
+        height: "100vh",
+        background: "#111",
+        color: "white",
+        padding: "40px",
+        overflow: "auto",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: 40,
+        }}
+      >
+        Real Estate 360 Viewer
+      </h1>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3,1fr)",
+          gap: 20,
+          maxWidth: 1000,
+          margin: "0 auto",
+        }}
+      >
+        {SIDES.map((side) => (
+          <div
+            key={side}
+            style={{
+              background: "#222",
+              borderRadius: 12,
+              padding: 20,
+              border: "2px solid #333",
+            }}
+          >
+            <h3>{side}</h3>
+
+            {images[side] ? (
+              <>
+                <img
+                  src={images[side].url}
+                  alt={side}
+                  style={{
+                    width: "100%",
+                    height: 220,
+                    objectFit: "cover",
+                    borderRadius: 8,
+                    marginTop: 10,
+                  }}
+                />
+
+                <button
+                  onClick={() => removeImage(side)}
+                  style={{
+                    marginTop: 10,
+                    width: "100%",
+                    padding: 12,
+                    cursor: "pointer",
+                  }}
+                >
+                  Remove
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFile(side, e.target.files[0])}
+                  style={{
+                    marginTop: 15,
+                    width: "100%",
+                  }}
+                />
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: 40,
+        }}
+      >
+        <button
+          disabled={!ready}
+          onClick={() => onComplete(images)}
+          style={{
+            padding: "18px 40px",
+            fontSize: 20,
+            cursor: ready ? "pointer" : "not-allowed",
+            borderRadius: 10,
+            border: "none",
+            background: ready ? "#00b894" : "#555",
+            color: "white",
+          }}
+        >
+          Generate 360 Viewer
+        </button>
       </div>
     </div>
-  )
+  );
 }
