@@ -1,9 +1,17 @@
-import { useState } from 'react'
-import UploadPanel from './components/UploadPanel'
-import Viewer from './components/Viewer'
+import { useState } from "react";
+import UploadPanel from "./components/UploadPanel";
+import Viewer from "./components/Viewer";
 
 export default function App() {
-  const [images, setImages] = useState(null)
+  const [roomImages, setRoomImages] = useState(null);
 
-  return images ? <Viewer images={images} /> : <UploadPanel onComplete={setImages} />
+  return (
+    <>
+      {roomImages ? (
+        <Viewer images={roomImages} />
+      ) : (
+        <UploadPanel onComplete={setRoomImages} />
+      )}
+    </>
+  );
 }
